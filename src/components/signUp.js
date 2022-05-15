@@ -1,10 +1,15 @@
-import React, { useState, } from 'react';
-import app from '../firebase-config'
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
-import { getFirestore, doc, setDoc } from "firebase/firestore";
+import React, { useState, useEffect } from 'react';
+import { auth, db } from '../firebase-config'
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
 import { useNavigate } from 'react-router-dom';
 
+
+
 export default function SignUp() {
+    useEffect(() => {
+        document.title = 'SignUp'
+    }, []);
 
     const navigate = useNavigate();
 
@@ -16,13 +21,6 @@ export default function SignUp() {
     const [password2, setPassword2] = useState('');
     const [error, setError] = useState(undefined);
 
-
-    const auth = getAuth();
-    const db = getFirestore();
-
-
-
-
     const handleAction = (event) => {
         event.preventDefault();
         console.log(email, password, password2)
@@ -31,13 +29,12 @@ export default function SignUp() {
             createUserWithEmailAndPassword(auth, email, password)
                 .then(async (userCredential) => {
                     console.log(userCredential)
-                    console.log(userCredential.user.stsTokenManager)
-                    const docRef = await setDoc(doc(db, "users", userCredential.user.uid), {
+                    await setDoc(doc(db, "users", userCredential.user.uid), {
                         "uid": userCredential.user.uid,
                         "name": name,
                         "address": address,
                         "phone": phone,
-                        "roles": 'ROLE_CUSTOMER',
+                        "role": 'ROLE_CUSTOMER',
                         "email": userCredential.user.email,
                         "createdAt": userCredential.user.metadata.createdAt,
                         "lastLoginAt": userCredential.user.metadata.lastLoginAt,
@@ -45,7 +42,6 @@ export default function SignUp() {
                         "expirationTime": userCredential.user.stsTokenManager.expirationTime,
                         "refreshToken": userCredential.user.stsTokenManager.refreshToken
                     });
-                    console.log("docRef", docRef)
 
                     navigate('/signin')
                 })
@@ -53,6 +49,8 @@ export default function SignUp() {
                     console.log(error.code)
                     if (error.code === 'auth/email-already-in-use') {
                         setError("Email Already in Use")
+                    } else if (error.code === 'auth/weak-password') {
+                        setError("Password is not secure")
                     }
                 });
         } else {
@@ -61,23 +59,13 @@ export default function SignUp() {
 
     }
 
-    const onChangeName = (event) => {
-        setName(event.target.value)
+    const onChang = (event, setValue) => {
+        setValue(event.target.value.trim())
     }
-    const onChangeAddress = (event) => {
-        setAddress(event.target.value)
-    }
-    const onChangePhone = (event) => {
-        setPhone(event.target.value)
-    }
-    const onChangeEmail = (event) => {
-        setEmail(event.target.value)
-    }
-    const onChangePassword = (event) => {
-        setPassword(event.target.value)
-    }
-    const onChangePassword2 = (event) => {
-        setPassword2(event.target.value)
+
+
+    const goToSignIn = () => {
+        navigate('/signin')
     }
 
 
@@ -87,32 +75,33 @@ export default function SignUp() {
             <form onSubmit={handleAction}>
                 <label>
                     Name:
-                    <input type="text" value={name} onChange={onChangeName} />
+                    <input type="text" value={name} onChange={(e) => onChang(e, setName)} />
                 </label><br />
                 <label>
                     Address:
-                    <input type="text" value={address} onChange={onChangeAddress} />
+                    <input type="text" value={address} onChange={(e) => onChang(e, setAddress)} />
                 </label><br />
                 <label>
                     Phone number:
-                    <input type="text" value={phone} onChange={onChangePhone} />
+                    <input type="text" value={phone} onChange={(e) => onChang(e, setPhone)} />
                 </label><br />
                 <label>
                     Email:
-                    <input type="email" value={email} onChange={onChangeEmail} />
+                    <input type="email" value={email} onChange={(e) => onChang(e, setEmail)} />
                 </label><br />
                 <label>
                     Password:
-                    <input type="password" value={password} onChange={onChangePassword} />
+                    <input type="password" value={password} onChange={(e) => onChang(e, setPassword)} />
                 </label><br />
                 <label>
                     Password 2 :
-                    <input type="password" value={password2} onChange={onChangePassword2} />
+                    <input type="password" value={password2} onChange={(e) => onChang(e, setPassword2)} />
                 </label>
                 <br />
                 <input type="submit" value="Submit" />
             </form>
             <br />
+            <button onClick={goToSignIn}>Sign In</button>
             {
                 error && (
                     <p>{error}</p>

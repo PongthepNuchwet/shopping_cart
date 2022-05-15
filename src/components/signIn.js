@@ -1,27 +1,81 @@
-import React, { useState, } from 'react';
-import app from '../firebase-config'
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import React, { useState, useEffect } from 'react';
+import { db, auth } from '../firebase-config'
+import { doc, getDoc } from "firebase/firestore";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux'
+import { setCustomer } from '../services/slice/customer'
 
 export default function SignIn() {
 
+    useEffect(() => {
+        document.title = "SignIn"
+    }, []);
+
+
+
     const navigate = useNavigate();
+    const dispatch = useDispatch()
+
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState(undefined);
 
 
-    const auth = getAuth();
+    const goToSignUp = () => {
+        navigate('/signup')
+    }
 
     const handleAction = (event) => {
         event.preventDefault();
         if (email.length > 0 && password.length > 0) {
+            console.log("signInWithEmailAndPassword")
             signInWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    console.log(userCredential)
+                .then(async (userCredential) => {
+                    // console.log("updateDoc")
+                    // await updateDoc(doc(db, "users", userCredential.user.uid), {
+                    //     "lastLoginAt": userCredential.user.metadata.lastLoginAt,
+                    //     "accessToken": userCredential.user.stsTokenManager.accessToken,
+                    //     "refreshToken": userCredential.user.stsTokenManager.refreshToken
+                    // });
+                    console.log("getDoc")
+                    const querySnapshot = await getDoc(doc(db, "users", userCredential.user.uid));
+
+                    let data = querySnapshot.data()
+                    if (querySnapshot.exists()) {
+                        console.log("Document data:", querySnapshot.data());
+
+                    } else {
+                        console.log("No such document!");
+                    }
+
+                    dispatch(setCustomer({
+                        uid: data.uid,
+                        name: data.name,
+                        phone: data.phone,
+                        address: data.address,
+                        role: data.role
+                    }))
+
                     sessionStorage.setItem('Auth Token', userCredential._tokenResponse.refreshToken)
-                    navigate('/home')
+                    sessionStorage.setItem('uid', data.uid)
+                    sessionStorage.setItem('name', data.name)
+                    sessionStorage.setItem('phone', data.phone)
+                    sessionStorage.setItem('address', data.address)
+                    sessionStorage.setItem('role', data.role)
+
+
+                    switch (data.role) {
+                        case 'ROLE_CUSTOMER':
+                            navigate('/'); break;
+                        case 'ROLE_ADMIN':
+                            navigate('/admin'); break;
+                        default:
+                            navigate('/'); break;
+                    }
+
+
                 })
                 .catch((error) => {
                     console.log(error)
@@ -36,15 +90,9 @@ export default function SignIn() {
 
     }
 
-    const onChangeEmail = (event) => {
-        setEmail(event.target.value)
+    const onChang = (event, setValue) => {
+        setValue(event.target.value.trim())
     }
-
-    const onChangePassword = (event) => {
-        setPassword(event.target.value)
-    }
-
-
 
     return (
         <>
@@ -52,16 +100,17 @@ export default function SignIn() {
             <form onSubmit={handleAction}>
                 <label>
                     Email:
-                    <input type="email" value={email} onChange={onChangeEmail} />
+                    <input type="email" value={email} onChange={(e) => onChang(e, setEmail)} />
                 </label>
                 <br />
                 <label>
                     Password:
-                    <input type="password" value={password} onChange={onChangePassword} />
+                    <input type="password" value={password} onChange={(e) => onChang(e, setPassword)} />
                 </label>
                 <br />
                 <input type="submit" value="Submit" />
             </form>
+            <button onClick={goToSignUp}>Sign Up</button>
             {
                 error && (
                     <p>{error}</p>
