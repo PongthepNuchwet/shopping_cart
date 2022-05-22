@@ -1,15 +1,14 @@
 import React, { useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import Announce from './customer/announce'
+import Products from './customer/products'
+import Menu from './customer/menu';
 
 export default function Home() {
-    useEffect(() => {
-        document.title = 'Home'
-    }, []);
 
 
     const navigate = useNavigate();
-
-    document.title = 'Home'
 
     const SignOut = () => {
         sessionStorage.clear()
@@ -18,8 +17,12 @@ export default function Home() {
 
     return (
         <>
-            <h1>Home</h1>
+            <h1>Home </h1>
             <button onClick={SignOut}>SignOut</button>
+            <br />
+            <Menu />
+            <Announce />
+            <Products />
         </>
 
     )

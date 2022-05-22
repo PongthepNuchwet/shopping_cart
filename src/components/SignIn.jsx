@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { db, auth } from '../firebase-config'
 import { doc, getDoc } from "firebase/firestore";
 import { signInWithEmailAndPassword } from "firebase/auth";
@@ -6,11 +6,14 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux'
 import { setCustomer } from '../services/slice/customer'
 
+import { loadAnimation } from "lottie-web";
+import { defineLordIconElement } from "lord-icon-element";
+
+
+
 export default function SignIn() {
 
-    useEffect(() => {
-        document.title = "SignIn"
-    }, []);
+    defineLordIconElement(loadAnimation);
 
 
 
@@ -65,15 +68,21 @@ export default function SignIn() {
                     sessionStorage.setItem('address', data.address)
                     sessionStorage.setItem('role', data.role)
 
-
-                    switch (data.role) {
-                        case 'ROLE_CUSTOMER':
-                            navigate('/'); break;
-                        case 'ROLE_ADMIN':
-                            navigate('/admin'); break;
-                        default:
-                            navigate('/'); break;
+                    if (data.role === 'ROLE_CUSTOMER') {
+                        navigate('/');
+                    } else {
+                        navigate('/admin');
                     }
+
+
+                    // switch (data.role) {
+                    //     case 'ROLE_CUSTOMER':
+                    //         navigate('/home'); break;
+                    //     case 'ROLE_ADMIN':
+                    //         navigate('/admin'); break;
+                    //     default:
+                    //         navigate('/'); break;
+                    // }
 
 
                 })
@@ -96,6 +105,7 @@ export default function SignIn() {
 
     return (
         <>
+            <lord-icon trigger="hover" onClick={(e) => { console.log("click") }} src='/8-account-solid-edited.json'></lord-icon>
             <h1>Sign_in</h1>
             <form onSubmit={handleAction}>
                 <label>
@@ -111,6 +121,7 @@ export default function SignIn() {
                 <input type="submit" value="Submit" />
             </form>
             <button onClick={goToSignUp}>Sign Up</button>
+
             {
                 error && (
                     <p>{error}</p>

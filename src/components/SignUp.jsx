@@ -7,9 +7,6 @@ import { useNavigate } from 'react-router-dom';
 
 
 export default function SignUp() {
-    useEffect(() => {
-        document.title = 'SignUp'
-    }, []);
 
     const navigate = useNavigate();
 

@@ -6,6 +6,8 @@ export default function ProtectedRoute({ allowedRoles }) {
     const location = useLocation();
     const uid = useSelector((state) => state.customer.uid) || sessionStorage.getItem('uid')
     const role = useSelector((state) => state.customer.role) || sessionStorage.getItem('role')
+    console.log(sessionStorage.getItem('uid'), sessionStorage.getItem('role'))
+    console.log(uid, role)
 
     return (
         allowedRoles?.includes(role)
@@ -15,7 +17,5 @@ export default function ProtectedRoute({ allowedRoles }) {
                     ? <Navigate to="/admin" state={{ from: location }} replace />
                     : <Navigate to="/" state={{ from: location }} replace />
                 : <Navigate to="/signin" state={{ from: location }} replace />
-        // ? <Navigate to="/unauthorized" state={{ from: location }} replace />
-        // : <Navigate to="/signin" state={{ from: location }} replace />
     );
 }
